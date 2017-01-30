@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<title>Wecker</title>
+</head>
+<body>
+
+<label>
+	<span>Alarm</span>
+	<input type="time" id="alarm">
+</label>
+
+<div id="info">Loading...<span></span></div>
+
+<div style="margin:0 0 10px;">
+	<button id="set">Set</button>
+	<button id="test">Test</button>
+	<button id="stop" style="display:none;">Stop</button>
+</div>
+
+
+<script src="socket.io/socket.io.js"></script>
+<script src="http://code.jquery.com/jquery-latest.js"></script>
+
+<script>
+var socket = io();
+var setInfo = function (txt) {
+	$('#info').html(txt);
+};
+
+var parseDate = function(d){
+	var date = new Date(d);
+	var min = date.getMinutes().toString();
+	if(min.length == 1) min = '0'+min;
+	var hour = date.getHours().toString();
+
+	var time = hour+':'+min;
+	
+	return time;
+};
+
+var update = function (alarm){
+	if(alarm){
+		setInfo('Alarm is set for '+parseDate(alarm));
+	} else {
+		setInfo('No Alarm is Set');
+	}
+};
+
+var changeButtons = function (standard){
+	if(standard) {
+		$('#stop').hide();
+		$('#set').show();
+		$('#test').show();
+	} else {
+		$('#stop').show();
+		$('#set').hide();
+		$('#test').hide();
+	}
+};
+
+socket.on('init', function(data){
+	update(data.nextAlarm);
+});
+
+socket.on('disconnect', function(){
+	setInfo("Connection to Backend failed");
+});
+
+socket.on('update', function(data){
+	update(data.nextAlarm);
+});
+
+socket.on('trigger', function(data){
+	changeButtons(false);
+});
+
+socket.on('stop', function(data){
+	changeButtons(true);
+	update(data.nextAlarm);
+});
+
+$('#set').click(function(){
+	setInfo("Updating Timer...")
+	socket.emit('set', {newAlarm: $('#alarm').val()});
+});
+
+$('#stop').click(function(){
+	socket.emit('stop');
+});
+
+$('#test').click(function(){
+	changeButtons(false);
+});
+
+</script>
+
+</body>
+</html>
