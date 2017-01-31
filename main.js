@@ -4,7 +4,6 @@ var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
 var alarm = require('./lib/alarm').Alarm();
 var gpio = require("pi-gpio");
-var sleep = require("sleep");
 
 
 var url = require('url');
