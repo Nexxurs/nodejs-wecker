@@ -53,7 +53,11 @@ function parseTime(string) {
 alarm.setCallback(function(){
 	io.sockets.emit('trigger');
 	gpio.open(11,"out", function(err) {
-		gpio.write(11,1);
+		gpio.write(11,1, function(err){
+			if (err) {
+				console.log(err)
+			}
+		});
 	});
 	
 });
