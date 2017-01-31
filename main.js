@@ -3,6 +3,7 @@ var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
 var alarm = require('./lib/alarm').Alarm();
+var gpio = require("pi-gpio");
 
 
 var url = require('url');
@@ -44,10 +45,14 @@ function parseTime(string) {
 	}
 
 	return time;
+
 }
+
+gpio.open(11,"out");
 
 alarm.setCallback(function(){
 	io.sockets.emit('trigger');
+	gpio.write(11,1);
 });
 
 io.sockets.on('connection', function(socket){
