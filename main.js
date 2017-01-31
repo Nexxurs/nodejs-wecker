@@ -4,6 +4,7 @@ var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
 var alarm = require('./lib/alarm').Alarm();
 var gpio = require("pi-gpio");
+var sleep = require("sleep");
 
 
 var url = require('url');
@@ -48,11 +49,14 @@ function parseTime(string) {
 
 }
 
-gpio.open(11,"out");
+
 
 alarm.setCallback(function(){
 	io.sockets.emit('trigger');
-	gpio.write(11,1);
+	gpio.open(11,"out", function(err) {
+		gpio.write(11,1);
+	});
+	
 });
 
 io.sockets.on('connection', function(socket){
@@ -72,6 +76,9 @@ io.sockets.on('connection', function(socket){
 	
 	socket.on('stop', function(data){
 		alarm.cancel();
+		gpio.write(11,0,function(err){
+			gpio.close(11);
+		});
 		io.sockets.emit('stop', {
 			nextAlarm: alarm.getNext(),
 			now: new Date().getTime()
